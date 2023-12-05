@@ -1,4 +1,3 @@
-import java.util.regex.MatchResult
 import java.util.regex.Pattern
 
 fun main() {
@@ -12,7 +11,7 @@ fun main() {
     fun part1(input: List<String>): Int {
         return input.map { line: String ->
             val digits = line.toCharArray().filter(Character::isDigit)
-            fromDigits(digits.first().digitToInt(), digits.last().digitToInt(), line)
+            fromDigits(digits.first().digitToInt(), digits.last().digitToInt(), "part 1: $line")
         }.sum()
     }
 
@@ -24,10 +23,17 @@ fun main() {
 
     fun forLine(s: String): Int {
         // how elegant
-        val nums = NUMBERS_PATTERN.matcher(s).results()
-            .map(MatchResult::group)
+        val matcher = NUMBERS_PATTERN.matcher(s)
+        // bit of bullshit with the regex so we find merged words like oneight -> 1, 8
+        var nextPos = 0
+        val matches: MutableList<String> = mutableListOf()
+        while (matcher.find(nextPos)) {
+            matches.add(s.substring(matcher.start(), matcher.end()))
+            nextPos=matcher.start()+1
+        }
+        val nums = matches
             .map(::stringToInt).toList()
-        return fromDigits(nums.first(), nums.last(), s)
+        return fromDigits(nums.first(), nums.last(), "part 2: $s")
     }
 
     fun part2(input: List<String>): Int {
@@ -35,10 +41,10 @@ fun main() {
     }
 
     // test if implementation meets criteria from the description, like:
-    val testInput1 = readInput("Day01_part1_test")
-    check(part1(testInput1) == 142)
-    val testInput2 = readInput("Day01_part2_test")
-    check(part2(testInput2) == 281)
+    check(part1(readInput("Day01_part1_test")) == 142)
+    check(part2(readInput("Day01_part2_test")) == 281)
+    // found a bug, not covered by test in description
+    check(part2(listOf("oneight")) == 18)
 
     val input = readInput("Day01")
     part1(input).println()
