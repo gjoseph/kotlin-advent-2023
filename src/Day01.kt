@@ -29,7 +29,7 @@ fun main() {
         val matches: MutableList<String> = mutableListOf()
         while (matcher.find(nextPos)) {
             matches.add(s.substring(matcher.start(), matcher.end()))
-            nextPos=matcher.start()+1
+            nextPos = matcher.start() + 1
         }
         val nums = matches
             .map(::stringToInt).toList()
@@ -41,12 +41,12 @@ fun main() {
     }
 
     // test if implementation meets criteria from the description, like:
-    check(part1(readInput("Day01_part1_test")) == 142)
-    check(part2(readInput("Day01_part2_test")) == 281)
+    check(part1(readTestInput(1)) == 142)
+    check(part2(readTestInput(2)) == 281)
     // found a bug, not covered by test in description
     check(part2(listOf("oneight")) == 18)
 
-    val input = readInput("Day01")
-    part1(input).println()
-    part2(input).println()
+    val input = readDayInput()
+    printResult(1, part1(input))
+    printResult(2, part2(input))
 }
