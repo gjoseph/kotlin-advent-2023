@@ -40,6 +40,13 @@ fun Iterable<Int>.multiply(): Int {
     return res
 }
 
+fun <T> List<T>.requireSize(requiredSize: Int): List<T> {
+    return when (size) {
+        requiredSize -> this
+        else -> throw IllegalArgumentException("List has ${size} element(s) but must have ${requiredSize}.")
+    }
+}
+
 // ====== print & output
 /**
  * The cleaner shorthand for printing output.
