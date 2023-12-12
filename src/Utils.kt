@@ -5,6 +5,7 @@ import kotlin.io.path.createFile
 import kotlin.io.path.notExists
 import kotlin.io.path.readLines
 
+// === input/test files
 fun inputFilePrefix(): String {
     // This is getting a bit tedious and magic, but
     val e = Thread.currentThread().stackTrace.filter { it.fileName != "AdventOfKode.kt" }.last()
@@ -21,6 +22,8 @@ private fun readInput(fileName: String): List<String> {
     return path.readLines()
 }
 
+// === other random utils
+
 /**
  * Converts string to md5 hash.
  */
@@ -28,6 +31,16 @@ fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteA
     .toString(16)
     .padStart(32, '0')
 
+// Doing this with stream/collector just got too messy
+fun Iterable<Int>.multiply(): Int {
+    var res: Int = 1
+    for (element in this) {
+        res *= element
+    }
+    return res
+}
+
+// ====== print & output
 /**
  * The cleaner shorthand for printing output.
  * I mean, is it really?

@@ -1,5 +1,6 @@
 package day03
 
+import multiply
 import printResult
 import readDayInput
 import readTestInput
@@ -7,6 +8,14 @@ import readTestInput
 data class CharAndPos(val char: Char, val pos: Int)
 
 fun main() {
+
+    data class Schematic(val columnWith: Int, val allChars: CharArray)
+
+    fun parse(input: List<String>): Schematic {
+        val columnWidth = input.map { it.length }.toSet().single()
+        val allChars: CharArray = input.flatMap { it.toList() }.toCharArray()
+        return Schematic(columnWidth, allChars)
+    }
 
     fun adjacentPositions(pos: Int, colWidth: Int, totalLength: Int): List<Int> {
         // there is likely a cleverer way of doing this
@@ -32,13 +41,14 @@ fun main() {
             .filter { it >= 0 && it < totalLength } // TODO it<totalLength should already be done by clamp() !?
     }
 
-    fun findAdjacentNumbers(c: CharAndPos, allChars: CharArray, columnWidth: Int): List<Int> {
-        return adjacentPositions(c.pos, columnWidth, allChars.size)
+    fun findAdjacentNumbers(c: CharAndPos, schematic: Schematic): List<Int> {
+        val chars = schematic.allChars
+        return adjacentPositions(c.pos, schematic.columnWith, chars.size)
             .map { potentialNrPos ->
                 // i am starting to regret not using a 2d array but oh well, i'll follow through
-                if (allChars[potentialNrPos].isDigit()) {
+                if (chars[potentialNrPos].isDigit()) {
                     var numStart = potentialNrPos
-                    while (numStart > 0 && allChars[numStart - 1].isDigit()) {
+                    while (numStart > 0 && chars[numStart - 1].isDigit()) {
                         numStart--
                     }
                     numStart
@@ -51,8 +61,8 @@ fun main() {
             .map { numStart ->
                 var nums = charArrayOf()
                 var i = numStart
-                while (allChars[i].isDigit()) {
-                    nums += allChars[i]
+                while (chars[i].isDigit()) {
+                    nums += chars[i]
                     i++
                 }
                 Integer.valueOf(nums.concatToString())
@@ -61,19 +71,28 @@ fun main() {
     }
 
     fun part1(input: List<String>): Int {
-        val columnWidth = input.map { it.length }.toSet().single()
-        val allChars = input.flatMap { it.toList() }.toCharArray()
-        // find symbols ... assuming anything non-digit _is_ a symbol
-        return allChars.mapIndexed { i, c -> CharAndPos(c, i) }
+        val s: Schematic = parse(input)
+        return s.allChars.mapIndexed { i, c -> CharAndPos(c, i) }
+            // find symbols ... assuming anything non-digit and not-a-dot _is_ a symbol
             .filterNot { it.char.isDigit() || it.char == '.' }
             // find numbers adjacent to each symbol
-            .flatMap { findAdjacentNumbers(it, allChars, columnWidth) }
+            .flatMap { findAdjacentNumbers(it, s) }
             // sum'em up
             .sum()
     }
 
     fun part2(input: List<String>): Int {
-        TODO()
+        val s: Schematic = parse(input)
+        return s.allChars.mapIndexed { i, c -> CharAndPos(c, i) }
+            // find gears
+            .filter {  it.char == '*' }
+            .map { findAdjacentNumbers(it, s) }
+            // valid gears have exactly 2 part numbers near them
+            .filter { it.size == 2 }
+            // multiply the 2 values -- "gear ratio"
+            .map(List<Int>::multiply)
+            // sum'em up
+            .sum()
     }
 
     // tests
@@ -82,7 +101,7 @@ fun main() {
     check(adjacentPositions(4, 5, 20) == listOf(3, 8, 9))
     check(adjacentPositions(15, 5, 20) == listOf(10, 11, 16))
     check(part1(readTestInput(1)) == 4361)
-    // check(part2(readTestInput(1)) == 467835)
+    check(part2(readTestInput(1)) == 467835)
 
     val input = readDayInput()
     printResult(1, part1(input))

@@ -2,6 +2,7 @@ package day02
 
 import java.util.EnumMap
 import java.util.regex.Pattern
+import multiply
 import printResult
 import readDayInput
 import readTestInput
@@ -22,15 +23,6 @@ data class Game(
 typealias Draws = EnumMap<Cube, Int>
 
 val countAndCube = Pattern.compile("^(\\d+) (\\w+)$")
-
-// Doing this with stream/collector just got too messy
-inline fun Iterable<Int>.multiply(): Int {
-    var res: Int = 1
-    for (element in this) {
-        res *= element
-    }
-    return res
-}
 
 fun main() {
 
