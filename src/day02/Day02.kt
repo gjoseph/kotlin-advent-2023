@@ -19,7 +19,7 @@ data class Game(
     val draws: List<Draws>
 )
 
-data class Draws(val cubeCounts: EnumMap<Cube, Int>)
+typealias Draws = EnumMap<Cube, Int>
 
 val countAndCube = Pattern.compile("^(\\d+) (\\w+)$")
 
@@ -30,21 +30,20 @@ fun main() {
         val gameId = line.substringAfter("Game ").substringBefore(":").toInt() // yolo, who needs input validation
         val draws: List<Draws> = line.substringAfter(":")
             .split(";").map { drawStr ->
-                val toMap = drawStr.split(",").map { countAndCubeStr ->
+                drawStr.split(",").map { countAndCubeStr ->
                     val matcher = countAndCube.matcher(countAndCubeStr.trim())
                     matcher.find()
                     val count = matcher.group(1).toInt()
                     val cube = toCube(matcher.group(2))
                     Pair(cube, count)
-                }.toMap(EnumMap(Cube::class.java))
-                Draws(toMap)
+                }.toMap(Draws(Cube::class.java))
             }
 
         return Game(gameId, draws)
     }
 
     fun isPossible(draws: Draws): Boolean {
-        return draws.cubeCounts.all { (cube, count) -> count <= cube.maxCount }
+        return draws.all { (cube, count) -> count <= cube.maxCount }
     }
 
     fun isPossible(game: Game): Boolean {
