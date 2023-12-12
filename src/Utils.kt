@@ -1,11 +1,13 @@
 import java.math.BigInteger
 import java.security.MessageDigest
-import java.util.regex.Pattern
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
 
-fun currentKtFile(): String = Thread.currentThread().stackTrace.last().fileName!!
-fun inputFilePrefix() = Pattern.compile("\\.kt$").matcher(currentKtFile()).replaceAll("")
+fun inputFilePrefix(): String {
+    // This is getting a bit tedious and magic, but
+    val e = Thread.currentThread().stackTrace.filter { it.fileName != "AdventOfKode.kt" }.last()
+    return e.className.substringBefore(".") + "/" + e.fileName.substringBefore(".kt")
+}
 fun readTestInput(part: Int) = readInput("${inputFilePrefix()}_part${part}_test.txt")
 fun readDayInput() = readInput("${inputFilePrefix()}.txt")
 private fun readInput(fileName: String) = Path("src/${fileName}").readLines()

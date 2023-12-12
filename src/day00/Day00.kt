@@ -1,3 +1,9 @@
+package day00
+
+import printResult
+import readDayInput
+import readTestInput
+
 fun main() {
     fun part1(input: List<String>): Int {
         TODO()

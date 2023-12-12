@@ -1,4 +1,9 @@
+package day01
+
 import java.util.regex.Pattern
+import printResult
+import readDayInput
+import readTestInput
 
 fun main() {
     fun fromDigits(first: Int, last: Int, debug: String): Int {
