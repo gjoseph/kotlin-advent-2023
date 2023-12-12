@@ -23,6 +23,15 @@ typealias Draws = EnumMap<Cube, Int>
 
 val countAndCube = Pattern.compile("^(\\d+) (\\w+)$")
 
+// Doing this with stream/collector just got too messy
+inline fun Iterable<Int>.multiply(): Int {
+    var res: Int = 1
+    for (element in this) {
+        res *= element
+    }
+    return res
+}
+
 fun main() {
 
     fun parseLine(line: String): Game {
@@ -51,18 +60,29 @@ fun main() {
     }
 
     fun part1(input: List<String>): Int {
-        return input.map { parseLine(it) }
+        return input.map(::parseLine)
             .filter(::isPossible)
             .sumOf(Game::id)
     }
 
+    fun maxForEachCube(g: Game) = Cube.entries.map { cube ->
+        val map: List<Int> = g.draws.map { it: Draws -> it.getOrDefault(cube, 0) }
+        val minBy = map.max()
+        Pair(cube, minBy)
+    }.toMap()
+
     fun part2(input: List<String>): Int {
-        TODO()
+        return input.map(::parseLine)
+            .map(::maxForEachCube)
+            .map { maxForEachCube: Map<Cube, Int> ->
+                // Doing this with stream/collector just got too messy
+                maxForEachCube.values.multiply()
+            }.sum()
     }
 
     // tests
     check(part1(readTestInput(1)) == 8)
-    // check(part2(readTestInput(2)) == 2286)
+    check(part2(readTestInput(2)) == 2286)
 
     val input = readDayInput()
     printResult(1, part1(input))
