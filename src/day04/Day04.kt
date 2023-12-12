@@ -6,23 +6,32 @@ import readDayInput
 import readTestInput
 import requireSize
 
+data class Card(val cardId: Int, val winningNumbers: Set<Int>, val myNumbers: Set<Int>) {
+    fun matches() = this.winningNumbers.intersect(this.myNumbers).size
+}
+
+data class CardCount(val card: Card) {
+    var count = 1
+    fun plus(count: Int) {
+        this.count += count
+    }
+}
 
 fun main() {
-    data class Card(val winningNumbers: Set<Int>, val myNumbers: Set<Int>)
 
     fun parseCard(input: String): Card {
         fun numbers(s: String): Set<Int> {
             return s.split(Regex("\\s+")).map(String::toInt).toSet()
         }
-        return input.split(':', '|').requireSize(3).drop(1)
+        return input.split("Card", ":", "|").requireSize(4)
+            .drop(1) // CBF working how to avoid the empty first element of this split
             .map(String::trim)
             .map(::numbers)
-            .let { Card(it.get(0), it.get(1)) }
+            .let { Card(it.get(0).single(), it.get(1), it.get(2)) }
     }
 
     fun score(c: Card): Int {
-        val matchingNumbers = c.winningNumbers.intersect(c.myNumbers)
-        return 2.toDouble().pow((matchingNumbers.size - 1)).toInt()
+        return 2.toDouble().pow((c.matches() - 1)).toInt()
     }
 
     fun part1(input: List<String>): Int {
@@ -33,14 +42,27 @@ fun main() {
     }
 
     fun part2(input: List<String>): Int {
-        TODO()
+        val cards = input.map(::parseCard).map { CardCount(it) }
+        // each card's N matches grants me a copy of the N-next cards
+        // set a counter for each card
+        cards
+            .forEach { cc ->
+                // 3, 0 matches -> []
+                // 4, 2 matches -> [5, 6]
+                val cardsToAdd = 0.until(cc.card.matches()).map { it + cc.card.cardId + 1 }
+                // this is likely going to cause ConcurrentModificationExceptions?
+                cardsToAdd.forEach { cardId ->
+                    cards.single { c -> c.card.cardId == cardId }.plus(cc.count)
+                }
+            }
+        return cards.map { it.count }.sum()
     }
 
     // tests
-    check(parseCard("Card 0: 1 22 3 | 2 5 22 1082 3 12") == Card(setOf(1, 22, 3), setOf(2, 5, 22, 1082, 3, 12)))
-    check(score(parseCard("Card 0: 1 22 3 | 2 5 22 1082 3 12")) == 2)
+    check(parseCard("Card 17: 1 22 3 | 2 5 22 1082 3 12") == Card(17, setOf(1, 22, 3), setOf(2, 5, 22, 1082, 3, 12)))
+    check(score(parseCard("Card 17: 1 22 3 | 2 5 22 1082 3 12")) == 2)
     check(part1(readTestInput(1)) == 13)
-    // uncomment when done with part 1 // check(part2(readTestInput(2)) == 0x00)
+    check(part2(readTestInput(1)) == 30)
 
     val input = readDayInput()
     printResult(1, part1(input))
