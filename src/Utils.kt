@@ -1,6 +1,8 @@
 import java.math.BigInteger
 import java.security.MessageDigest
 import kotlin.io.path.Path
+import kotlin.io.path.createFile
+import kotlin.io.path.notExists
 import kotlin.io.path.readLines
 
 fun inputFilePrefix(): String {
@@ -10,7 +12,14 @@ fun inputFilePrefix(): String {
 }
 fun readTestInput(part: Int) = readInput("${inputFilePrefix()}_part${part}_test.txt")
 fun readDayInput() = readInput("${inputFilePrefix()}.txt")
-private fun readInput(fileName: String) = Path("src/${fileName}").readLines()
+private fun readInput(fileName: String): List<String> {
+    val path = Path("src/${fileName}")
+    if (path.notExists()) {
+        path.createFile()
+        error("Created ${path} for you 🙄")
+    }
+    return path.readLines()
+}
 
 /**
  * Converts string to md5 hash.
