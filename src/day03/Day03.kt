@@ -5,7 +5,7 @@ import printResult
 import readDayInput
 import readTestInput
 
-data class CharAndPos(val char: Char, val pos: Int)
+data class CharAndPos(val char: Char, val pos: Int) // TODO This could be replaced by IndexedValue<Char>, i.e list.withIndex().
 
 fun main() {
 

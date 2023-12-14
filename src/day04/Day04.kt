@@ -5,6 +5,7 @@ import printResult
 import readDayInput
 import readTestInput
 import requireSize
+import toNumbers
 
 data class Card(val cardId: Int, val winningNumbers: Set<Int>, val myNumbers: Set<Int>) {
     fun matches() = this.winningNumbers.intersect(this.myNumbers).size
@@ -20,13 +21,9 @@ data class CardCount(val card: Card) {
 fun main() {
 
     fun parseCard(input: String): Card {
-        fun numbers(s: String): Set<Int> {
-            return s.split(Regex("\\s+")).map(String::toInt).toSet()
-        }
         return input.split("Card", ":", "|").requireSize(4)
             .drop(1) // CBF working how to avoid the empty first element of this split
-            .map(String::trim)
-            .map(::numbers)
+            .map { it.toNumbers().toSet() }
             .let { Card(it.get(0).single(), it.get(1), it.get(2)) }
     }
 

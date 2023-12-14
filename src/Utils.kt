@@ -47,6 +47,8 @@ fun <T> List<T>.requireSize(requiredSize: Int): List<T> {
     }
 }
 
+fun String.toNumbers() = this.trim().split(Regex("\\s+")).map(String::toInt)
+
 // ====== print & output
 /**
  * The cleaner shorthand for printing output.
