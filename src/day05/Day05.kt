@@ -4,6 +4,7 @@ import printResult
 import readDayInput
 import readTestInput
 import requireSize
+import splitWhen
 import toLongs
 
 enum class Category { seed, soil, fertilizer, water, light, temperature, humidity, location }
@@ -22,36 +23,29 @@ fun Almap.findDestMappingFor(currentId: Long): Long {
 
 fun parse(input: List<String>): Almanac {
     val seeds: List<Long> = input.first().substringAfter(":").toLongs()
-    // I tried hard -- and failed -- find an idiomatic way to do this -- scan, fold or one of these methods should probably work...
-    val maps = mutableListOf<MutableList<String>>()
-    var currentList = mutableListOf<String>()
-    maps.add(currentList)
     // skip first line (seeds) and blank line following it
-    input.drop(2).forEach { el ->
-        if (el.isEmpty()) {
-            currentList = mutableListOf()
-            maps.add(currentList)
-        } else {
-            currentList.add(el)
+    val maps = input.drop(2)
+        .splitWhen { it.isEmpty() }
+        .map { mapStr: List<String> ->
+            check(mapStr.first().endsWith(" map:"))
+            // first line has name/categories
+            val (src, dest) = mapStr.first()
+                .substringBefore(" map:")
+                .split("-to-").requireSize(2)
+                .map(Category::valueOf)
+            // subsequent line define ranges
+            val ranges = mapStr.drop(1)
+                .map { s -> s.toLongs().requireSize(3) }
+                .map { nums: List<Long> ->
+                    AlmapRange(
+                        LongRange(nums[0], nums[0] + nums[2]),
+                        LongRange(nums[1], nums[1] + nums[2])
+                    )
+                }
+            Almap(src, dest, ranges)
         }
-    }
-    val almaps: List<Almap> = maps.map { mapStr: List<String> ->
-        check(mapStr.first().endsWith(" map:"))
-        // first line has name/categories
-        val (src, dest) = mapStr.first().substringBefore(" map:").split("-to-").requireSize(2).map(Category::valueOf)
-        // subsequent line define ranges
-        val ranges = mapStr.drop(1)
-            .map { s -> s.toLongs().requireSize(3) }
-            .map { nums: List<Long> ->
-                AlmapRange(
-                    LongRange(nums[0], nums[0] + nums[2]),
-                    LongRange(nums[1], nums[1] + nums[2])
-                )
-            }
-        Almap(src, dest, ranges)
-    }
 
-    return Almanac(seeds, almaps)
+    return Almanac(seeds, maps)
 }
 
 fun main() {

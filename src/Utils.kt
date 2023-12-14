@@ -47,6 +47,23 @@ fun <T> List<T>.requireSize(requiredSize: Int): List<T> {
     }
 }
 
+// I tried hard -- and failed -- find an idiomatic way to do this -- I thought one of scan, fold or one of these methods would probably work...
+// ended up with this after a couple iterations
+fun <T> List<T>.splitWhen(shouldSplitWhen: (T) -> Boolean): List<List<T>> {
+    val output = mutableListOf<MutableList<T>>()
+    this.forEach { i ->
+        // if we add the first sublist outside the loop and the first entry is a splitter, we'll have an empty list at the start, which is unwanted
+        val shouldSplit = shouldSplitWhen(i)
+        if (output.isEmpty() || shouldSplit) {
+            output.add(mutableListOf())
+        }
+        if (!shouldSplit) {
+            output.last().add(i)
+        }
+    }
+    return output.map { ml -> ml.toList() }.toList()
+}
+
 private fun String.splitBySpace() = this.trim().split(Regex("\\s+"))
 fun String.toInts() = splitBySpace().map(String::toInt)
 fun String.toLongs() = splitBySpace().map(String::toLong)
