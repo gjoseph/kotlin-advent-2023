@@ -1,5 +1,6 @@
 package day00
 
+import kotlin.time.measureTimedValue
 import printResult
 import readDayInput
 import readTestInput
@@ -18,7 +19,7 @@ fun main() {
     // uncomment when done with part 1 // check(part2(readTestInput(2)) == 0x00)
 
     val input = readDayInput()
-    printResult(1, part1(input))
-    printResult(2, part2(input))
+    printResult(1, measureTimedValue { part1(input) })
+    printResult(2, measureTimedValue { part2(input) })
 }
 

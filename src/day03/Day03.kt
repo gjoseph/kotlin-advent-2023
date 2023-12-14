@@ -1,5 +1,6 @@
 package day03
 
+import kotlin.time.measureTimedValue
 import multiply
 import printResult
 import readDayInput
@@ -104,6 +105,6 @@ fun main() {
     check(part2(readTestInput(1)) == 467835)
 
     val input = readDayInput()
-    printResult(1, part1(input))
-    printResult(2, part2(input))
+    printResult(1, measureTimedValue { part1(input) })
+    printResult(2, measureTimedValue { part2(input) })
 }

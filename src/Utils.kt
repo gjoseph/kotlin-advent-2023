@@ -4,6 +4,8 @@ import kotlin.io.path.Path
 import kotlin.io.path.createFile
 import kotlin.io.path.notExists
 import kotlin.io.path.readLines
+import kotlin.time.TimedValue
+import kotlin.time.measureTimedValue
 
 // === input/test files
 fun inputFilePrefix(): String {
@@ -75,6 +77,14 @@ fun String.toLongs() = splitBySpace().map(String::toLong)
  */
 fun Any?.println() = println(this)
 
+/**
+ * Just prints out the result in a somewhat understandable fashion.
+ * Use {@link measureTimedValue} to pass a {@link } to also print how long the execution took/
+  */
 fun printResult(part: Int, res: Any?) {
-    println("${inputFilePrefix()} - part $part : $res")
+    val resultStr = when (res) {
+        is TimedValue<*> -> "${res.value} (took ${res.duration})"
+        else -> res.toString()
+    }
+    println("➡️ ${inputFilePrefix()} - part $part : $resultStr")
 }

@@ -1,6 +1,7 @@
 package day01
 
 import java.util.regex.Pattern
+import kotlin.time.measureTimedValue
 import printResult
 import readDayInput
 import readTestInput
@@ -52,6 +53,6 @@ fun main() {
     check(part2(listOf("oneight")) == 18)
 
     val input = readDayInput()
-    printResult(1, part1(input))
-    printResult(2, part2(input))
+    printResult(1, measureTimedValue { part1(input) })
+    printResult(2, measureTimedValue { part2(input) })
 }
