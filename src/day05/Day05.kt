@@ -15,10 +15,16 @@ data class Almanac(val seeds: List<Long>, val maps: List<Almap>)
 fun Almanac.findMapBySource(src: Category) = maps.single { m -> m.source == src }
 fun Almanac.findMapByDestination(dest: Category) = maps.single { m -> m.destination == dest }
 fun Almap.findDestMappingFor(currentId: Long): Long {
-    return ranges.filter { r -> r.srcRange.contains(currentId) }.map { r ->
-        val idxInRange = currentId - r.srcRange.first
-        r.destRange.first + idxInRange
-    }.singleOrNull() ?: currentId
+    return ranges.filter { r -> r.srcRange.contains(currentId) }
+        .map { r ->
+            val idxInRange = currentId - r.srcRange.first
+            r.destRange.first + idxInRange
+        }
+        .also {
+            // singleOrNull will return null if the list has more than 1; we expect the filter to find 0 or 1 ranges
+            check(it.size <= 1)
+        }
+        .singleOrNull() ?: currentId
 }
 
 fun Almanac.findLocation(seed: Long): Long {
@@ -29,6 +35,13 @@ fun Almanac.findLocation(seed: Long): Long {
         currentId = map.findDestMappingFor(currentId)
     }
     return currentId
+}
+
+fun Almanac.seedsAsRanges(): List<LongRange> {
+    check(this.seeds.size % 2 == 0) { -> "Conversions of list of numbers to ranges requires an even number of elements" }
+    return this.seeds.chunked(2).map {
+        LongRange(it.first(), it.first() + it.last())
+    }
 }
 
 fun parse(input: List<String>): Almanac {
@@ -48,8 +61,9 @@ fun parse(input: List<String>): Almanac {
                 .map { s -> s.toLongs().requireSize(3) }
                 .map { nums: List<Long> ->
                     AlmapRange(
-                        LongRange(nums[0], nums[0] + nums[2]),
-                        LongRange(nums[1], nums[1] + nums[2])
+                        // range end is "inclusive", but nums[2] is our length, so -1
+                        LongRange(nums[0], nums[0] + nums[2] - 1),
+                        LongRange(nums[1], nums[1] + nums[2] - 1)
                     )
                 }
             Almap(src, dest, ranges)
@@ -66,12 +80,16 @@ fun main() {
     }
 
     fun part2(input: List<String>): Long {
-        TODO()
+        val almanac = parse(input)
+        // yikes that's a hell of a long list
+        return almanac.seedsAsRanges().flatMap { it.toList() }
+            .map { seed -> almanac.findLocation(seed) }.min()
+
     }
 
     // tests
     check(part1(readTestInput(1)) == 35L)
-    // uncomment when done with part 1 // check(part2(readTestInput(2)) == 0x00)
+    check(part2(readTestInput(1)) == 46L)
 
     val input = readDayInput()
     printResult(1, part1(input))
