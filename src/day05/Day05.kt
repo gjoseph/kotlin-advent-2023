@@ -21,6 +21,16 @@ fun Almap.findDestMappingFor(currentId: Long): Long {
     }.singleOrNull() ?: currentId
 }
 
+fun Almanac.findLocation(seed: Long): Long {
+    var currentId = seed
+    Category.entries.dropLast(1).forEachIndexed { i, src ->
+        val map = this.findMapBySource(src)
+        check(map.destination == Category.entries[i + 1])
+        currentId = map.findDestMappingFor(currentId)
+    }
+    return currentId
+}
+
 fun parse(input: List<String>): Almanac {
     val seeds: List<Long> = input.first().substringAfter(":").toLongs()
     // skip first line (seeds) and blank line following it
@@ -49,18 +59,10 @@ fun parse(input: List<String>): Almanac {
 }
 
 fun main() {
-    fun findLocation(almanac: Almanac, seed: Long): Long {
-        var currentId = seed
-        Category.entries.dropLast(1).forEachIndexed { i, src ->
-            val map = almanac.findMapBySource(src)
-            check(map.destination == Category.entries[i + 1])
-            currentId = map.findDestMappingFor(currentId)
-        }
-        return currentId
-    }
 
     fun part1(input: List<String>): Long {
-        return parse(input).seeds.map { seed -> findLocation(parse(input), seed) }.min()
+        val almanac = parse(input)
+        return almanac.seeds.map { seed -> almanac.findLocation(seed) }.min()
     }
 
     fun part2(input: List<String>): Long {
