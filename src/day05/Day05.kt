@@ -1,6 +1,8 @@
 package day05
 
 import kotlin.time.measureTimedValue
+import logDuration
+import logUsefulDuration
 import printResult
 import readDayInput
 import readTestInput
@@ -15,34 +17,33 @@ data class Almanac(val seeds: List<Long>, val maps: List<Almap>)
 
 fun Almanac.findMapBySource(src: Category) = maps.single { m -> m.source == src }
 fun Almanac.findMapByDestination(dest: Category) = maps.single { m -> m.destination == dest }
-fun Almap.findDestMappingFor(currentId: Long): Long {
-    return ranges.filter { r -> r.srcRange.contains(currentId) }
-        .map { r ->
-            val idxInRange = currentId - r.srcRange.first
-            r.destRange.first + idxInRange
-        }
-        .also {
-            // singleOrNull will return null if the list has more than 1; we expect the filter to find 0 or 1 ranges
-            check(it.size <= 1)
-        }
-        .singleOrNull() ?: currentId
+
+fun Almap.findMappingFor(currentId: Long): Long {
+    val r = ranges.firstOrNull { r: AlmapRange -> r.srcRange.contains(currentId) }
+    return if (r != null) {
+        val idxInRange = currentId - r.srcRange.first
+        r.destRange.first + idxInRange
+    } else {
+        currentId
+    }
 }
 
+val catsForFindLocation = Category.entries.dropLast(1)
 fun Almanac.findLocation(seed: Long): Long {
     var currentId = seed
-    Category.entries.dropLast(1).forEachIndexed { i, src ->
+    catsForFindLocation.forEach { src ->
         val map = this.findMapBySource(src)
-        check(map.destination == Category.entries[i + 1])
-        currentId = map.findDestMappingFor(currentId)
+        currentId = map.findMappingFor(currentId)
     }
     return currentId
 }
 
 fun Almanac.seedsAsRanges(): List<LongRange> {
     check(this.seeds.size % 2 == 0) { -> "Conversions of list of numbers to ranges requires an even number of elements" }
-    return this.seeds.chunked(2).map {
-        LongRange(it.first(), it.first() + it.last())
-    }
+    return this.seeds.chunked(2)
+        .map {
+            LongRange(it.first(), it.first() + it.last())
+        }
 }
 
 fun parse(input: List<String>): Almanac {
@@ -83,9 +84,50 @@ fun main() {
     fun part2(input: List<String>): Long {
         val almanac = parse(input)
         // yikes that's a hell of a long list
-        return almanac.seedsAsRanges().flatMap { it.toList() }
-            .map { seed -> almanac.findLocation(seed) }.min()
+        val ranges = almanac.seedsAsRanges()
+        // flatmapping the entire ranges in memory yields an OOM
+        // forEach might work but is also extremely slow
+        // now replacing all large map operations by for-each which we can interrupt if needed
+        var smallestLocationFound = Long.MAX_VALUE
+        ranges.forEach { range ->
+            range.forEach { seed ->
+                // there's still quite a few that go beyond 100us or even several ms... yikes
+                val location = logUsefulDuration({ -> almanac.findLocation(seed) }, { _ -> "find location took " })
+                // we can't really interrupt here, because there's no guarantee the next seed will find a location that's higher or lower
+                if (location < smallestLocationFound) {
+                    smallestLocationFound = location
+                }
+            }
+        }
+        return smallestLocationFound
+    }
 
+    // quick check that no ranges overlap
+    fun checkNoRangesOverlap(almanac: Almanac) {
+        fun overlap(r1: LongRange, r2: LongRange): Boolean {
+            return r1.contains(r2.first)
+                    || r2.contains(r1.first)
+                    || r1.contains(r2.last)
+                    || r2.contains(r1.last)
+
+        }
+
+        fun checkRanges(ranges: List<LongRange>) {
+            ranges.forEach { r1: LongRange ->
+                ranges.forEach { r2: LongRange ->
+                    check(r1 == r2 || !overlap(r1, r2)) { -> "Range ${r1} intersects with ${r2}" }
+                }
+            }
+        }
+        logDuration(
+            { ->
+                almanac.maps.forEach { map ->
+                    checkRanges(map.ranges.map { it.srcRange })
+                    checkRanges(map.ranges.map { it.destRange })
+                }
+            }, { _ -> "check maps ranges overlap took " })
+        logDuration({ -> checkRanges(almanac.seedsAsRanges()) },
+            { _ -> "checking seeds ranges overlap took " })
     }
 
     // tests
@@ -93,6 +135,7 @@ fun main() {
     check(part2(readTestInput(1)) == 46L)
 
     val input = readDayInput()
+    checkNoRangesOverlap(parse(input))
     printResult(1, measureTimedValue { part1(input) })
     printResult(2, measureTimedValue { part2(input) })
 }
