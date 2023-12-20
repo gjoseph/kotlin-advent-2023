@@ -35,6 +35,13 @@ fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteA
     .toString(16)
     .padStart(32, '0')
 
+fun quadratic(a: Long, b: Long, c: Long): Pair<Double, Double> {
+    val s = Math.sqrt(((b * b) - (4 * a * c)).toDouble())
+    val res1: Double = (-b - s) / (2 * a)
+    val res2: Double = (-b + s) / (2 * a)
+    return Pair(res1, res2)
+}
+
 // Doing this with stream/collector just got too messy
 fun Iterable<Int>.multiply(): Int {
     var res: Int = 1
