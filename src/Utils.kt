@@ -4,19 +4,19 @@ import kotlin.io.path.Path
 import kotlin.io.path.createFile
 import kotlin.io.path.notExists
 import kotlin.io.path.readLines
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.TimedValue
-import kotlin.time.measureTimedValue
 
 // === input/test files
 fun inputFilePrefix(): String {
     // This is getting a bit tedious and magic, but
-    val e = Thread.currentThread().stackTrace.filter { it.fileName != "AdventOfKode.kt" }.last()
-    return e.className.substringBefore(".") + "/" + e.fileName.substringBefore(".kt")
+    val e = Thread.currentThread().stackTrace.last { it.fileName != "AdventOfKode.kt" }
+    return e.className.substringBefore(".") + "/" + e.fileName!!.substringBefore(".kt")
 }
-fun readTestInput(part: Int) = readInput("${inputFilePrefix()}_part${part}_test.txt")
+
+fun readTestInput(testId: Int) = readInput("${inputFilePrefix()}_test${testId}.txt")
+
 fun readDayInput() = readInput("${inputFilePrefix()}.txt")
+
 private fun readInput(fileName: String): List<String> {
     val path = Path("src/${fileName}")
     if (path.notExists()) {
@@ -91,31 +91,3 @@ fun printResult(part: Int, res: Any?) {
     println("➡️ ${inputFilePrefix()} - part $part : $resultStr")
 }
 
-fun <T> logDuration(function: () -> T): T {
-    return logDuration(function, { _ -> true }, { _ -> "function took " })
-}
-
-fun <T> logDuration(function: () -> T, message: (T) -> String): T {
-    return logDuration(function, { _ -> true }, message)
-}
-
-fun <T> logUsefulDuration(function: () -> T, threshold: Duration): T {
-    return logUsefulDuration(function, threshold, { _ -> "function took " })
-}
-
-fun <T> logUsefulDuration(function: () -> T, message: (T) -> String): T {
-    return logDuration(function, { it > 1.milliseconds }, message)
-}
-
-fun <T> logUsefulDuration(function: () -> T, threshold: Duration, message: (T) -> String): T {
-    return logDuration(function, { it > threshold }, message)
-}
-
-private fun <T> logDuration(function: () -> T, shouldLog: (Duration) -> Boolean, message: (T) -> String): T {
-    val (res, duration) = measureTimedValue(function)
-    if (shouldLog(duration)) {
-        val s = if (message != null) message(res) else ""
-        println("${s}${duration}")
-    }
-    return res
-}
