@@ -17,12 +17,10 @@ enum class HandType {
 }
 
 open class Hand(val cards: List<Card>, val bid: Int) : Comparable<Hand> {
-    private val comparator: Comparator<Hand> =
+    open val comparator: Comparator<Hand> =
         compareBy<Hand> { it.type() }.thenComparing({ it.cards }, cardListComparator())
 
     private fun cardListComparator() = ListComparator<Card> { c1, c2 -> c1.compareTo(c2) }
-
-    open fun comparator() = comparator
 
     open fun type(): HandType {
         return typeOf(this.cards)
@@ -51,7 +49,7 @@ open class Hand(val cards: List<Card>, val bid: Int) : Comparable<Hand> {
     }
 
     override fun compareTo(other: Hand): Int {
-        return comparator().compare(this, other)
+        return comparator.compare(this, other)
     }
 
     override fun toString(): String {
@@ -97,7 +95,7 @@ class HandWithJokerRule(cards: List<Card>, bid: Int) : Hand(cards, bid) {
     }
 
     // Diminish J's value
-    private val comparator: Comparator<Hand> =
+    override val comparator: Comparator<Hand> =
         compareBy<Hand> { it.type() }.thenComparing({ it.cards }, ListComparator { c1, c2 ->
             jokerCompare(c1, c2)
         })
@@ -117,10 +115,6 @@ class HandWithJokerRule(cards: List<Card>, bid: Int) : Hand(cards, bid) {
         } else {
             0
         }
-    }
-
-    override fun comparator(): Comparator<Hand> {
-        return comparator
     }
 }
 
