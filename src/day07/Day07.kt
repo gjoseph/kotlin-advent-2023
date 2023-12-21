@@ -9,7 +9,12 @@ import splitBySpace
 import toPair
 
 enum class Card(val c: Char) {
-    A('A'), K('K'), Q('Q'), J('J'), T('T'), _9('9'), _8('8'), _7('7'), _6('6'), _5('5'), _4('4'), _3('3'), _2('2')
+    A('A'), K('K'), Q('Q'), J('J'), T('T'), _9('9'), _8('8'), _7('7'), _6('6'), _5('5'), _4('4'), _3('3'), _2('2');
+
+    override fun toString(): String {
+        return c.toString()
+    }
+
 }
 
 enum class HandType {
@@ -65,7 +70,7 @@ class HandWithJokerRule(cards: List<Card>, bid: Int) : Hand(cards, bid) {
         // there aren't that many combinations so let's work then off. Bets are, this will be slow as with the real input
         val handType = when (jokerCount) {
             5 -> HandType.FIVE_OF_A_KIND
-            4 -> HandType.FOUR_OF_A_KIND
+            4 -> HandType.FIVE_OF_A_KIND // 4 jokers + 1 single
             3 -> when (typeWithoutJokers) {
                 HandType.ONE_PAIR -> HandType.FIVE_OF_A_KIND
                 HandType.HIGH_CARD -> HandType.FOUR_OF_A_KIND
@@ -74,16 +79,16 @@ class HandWithJokerRule(cards: List<Card>, bid: Int) : Hand(cards, bid) {
 
             2 -> when (typeWithoutJokers) {
                 HandType.THREE_OF_A_KIND -> HandType.FIVE_OF_A_KIND
-                HandType.ONE_PAIR -> HandType.FOUR_OF_A_KIND
-                HandType.HIGH_CARD -> HandType.FULL_HOUSE
+                HandType.ONE_PAIR -> HandType.FOUR_OF_A_KIND // could also be FULL_HOUSE but that's weaker
+                HandType.HIGH_CARD -> HandType.THREE_OF_A_KIND // 2 jokers + 3 singles
                 else -> error("wtf")
             }
 
             1 -> when (typeWithoutJokers) {
                 HandType.FOUR_OF_A_KIND -> HandType.FIVE_OF_A_KIND
-                HandType.THREE_OF_A_KIND -> HandType.FOUR_OF_A_KIND
+                HandType.THREE_OF_A_KIND -> HandType.FOUR_OF_A_KIND // could also be FULL_HOUSE but that's weaker
                 HandType.TWO_PAIRS -> HandType.FULL_HOUSE
-                HandType.ONE_PAIR -> HandType.THREE_OF_A_KIND
+                HandType.ONE_PAIR -> HandType.THREE_OF_A_KIND // could also be TWO_PAIRS but that's weaker
                 HandType.HIGH_CARD -> HandType.ONE_PAIR
                 else -> error("wtf")
             }
@@ -129,25 +134,20 @@ fun main() {
         Hand(cards, line.second.toInt())
     }
 
-    fun part1(input: List<String>): Int {
-        return parse(input).sortedDescending().mapIndexed { i, h: Hand ->
+    fun List<Hand>.sumBids(): Int {
+        return this.sortedDescending().mapIndexed { i, h: Hand ->
             h.bid * (i + 1) // rank starts at 1, index starts at 0
         }.sum()
     }
 
-    fun convertToJokerRule(it: Hand): HandWithJokerRule = HandWithJokerRule(it.cards, it.bid)
+    fun part1(input: List<String>): Int {
+        return parse(input).sumBids()
+    }
+
+    fun convertToJokerRule(it: Hand) = HandWithJokerRule(it.cards, it.bid)
 
     fun part2(input: List<String>): Int {
-        return parse(input).map(::convertToJokerRule).sortedDescending()
-            .also {
-                it.forEach {
-                    println("cards = ${it.cards}  -> ${it.type()}")
-                }
-            }
-            .mapIndexed { i, h: Hand ->
-                h.bid * (i + 1) // rank starts at 1, index starts at 0
-            }.sum()
-
+        return parse(input).map(::convertToJokerRule).sumBids()
     }
 
     // tests
