@@ -58,6 +58,11 @@ fun <T> List<T>.requireSize(requiredSize: Int): List<T> {
     }
 }
 
+fun <T> List<T>.toPair(): Pair<T, T> {
+    this.requireSize(2)
+    return Pair(this[0], this[1])
+}
+
 // I tried hard -- and failed -- find an idiomatic way to do this -- I thought one of scan, fold or one of these methods would probably work...
 // ended up with this after a couple iterations
 fun <T> List<T>.splitWhen(shouldSplitWhen: (T) -> Boolean): List<List<T>> {
@@ -75,7 +80,7 @@ fun <T> List<T>.splitWhen(shouldSplitWhen: (T) -> Boolean): List<List<T>> {
     return output.map { ml -> ml.toList() }.toList()
 }
 
-private fun String.splitBySpace() = this.trim().split(Regex("\\s+"))
+fun String.splitBySpace() = this.trim().split(Regex("\\s+"))
 fun String.toInts() = splitBySpace().map(String::toInt)
 fun String.toLongs() = splitBySpace().map(String::toLong)
 

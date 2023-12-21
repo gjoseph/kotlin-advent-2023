@@ -5,4 +5,5 @@ fun main() {
     day04.main()
     // too slow to run every time day05.main()
     day06.main()
+    day07.main()
 }
