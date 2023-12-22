@@ -1,5 +1,3 @@
-import kotlin.math.abs
-
 // oh well https://www.baeldung.com/kotlin/gcd
 fun gcd(a: Long, b: Long): Long {
     var num1 = a
@@ -13,8 +11,11 @@ fun gcd(a: Long, b: Long): Long {
 }
 
 fun lcm(a: Long, b: Long): Long {
-    // return abs(a * b) / gcd(a, b) // <-- this overflows silently for some reason
-    return (abs(a) / gcd(a, b)) * abs(b) // <-- this also does, with larger numbers...
+    // with Ints, the below overflew silently (proven by tests)
+    // with Longs, we're fine... but might as well use StrictMath while we're at it
+    // return abs(a * b) / gcd(a, b)
+    // return (abs(a) / gcd(a, b)) * abs(b)
+    return StrictMath.floorDiv(StrictMath.abs(StrictMath.multiplyExact(a, b)), gcd(a, b))
 }
 
 fun lcm(nums: List<Long>): Long {
