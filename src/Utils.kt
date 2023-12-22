@@ -100,6 +100,6 @@ fun printResult(part: Int, res: Any?) {
         is TimedValue<*> -> "${res.value} (took ${res.duration})"
         else -> res.toString()
     }
-    println("➡️ ${inputFilePrefix()} - part $part : $resultStr")
+    println("➡️ ${inputFilePrefix().substringAfter("/")} - part $part : $resultStr")
 }
 
