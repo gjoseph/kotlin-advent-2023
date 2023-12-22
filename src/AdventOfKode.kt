@@ -7,4 +7,5 @@ fun main() {
     day06.main()
     day07.main()
     day08.main()
+    day09.main()
 }
